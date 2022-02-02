@@ -85,7 +85,8 @@ class AuthController extends Controller
         $user->createToken('token');
         //return view('admin.home');
         $cookie = cookie('jwt', $token, 60 * 24); // 1 day
-        return redirect('/?$token'.$token)->withCookie($cookie);
+        return redirect('/?token='.$token)->withCookie($cookie);
+
     }
 
     /**

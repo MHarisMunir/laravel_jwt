@@ -27,8 +27,10 @@ Route::post('/user/login', 'App\Http\Controllers\AuthController@login')->name('u
 
 
 Route::middleware(['auth'])->group(function(){
-Route::get('/', 'App\Http\Controllers\HomeController@index')->name('home');
 
-Route::post('/logout', 'App\Http\Controllers\AuthController@logout')->name('logout');
+    Route::get('/', 'App\Http\Controllers\HomeController@index')->name('home');
+    Route::post('/logout', 'App\Http\Controllers\AuthController@logout')->name('logout');
+
+    Route::get('/users/all', 'App\Http\Controllers\UserController@index')->name('allusers');
 
 });

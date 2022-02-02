@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
-class HomeController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +15,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('admin.home');    //layouts.app
+        $users = DB::table('users')->get();
+        //dd($users);
+        return view('admin.all', ['users' => $users]);
     }
 
     /**
@@ -45,7 +47,7 @@ class HomeController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show()  //$id
+    public function show($id)
     {
 
     }
