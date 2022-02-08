@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\AjaxController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -26,11 +28,25 @@ Route::post('/user/login', 'App\Http\Controllers\AuthController@login')->name('u
 
 
 
-Route::middleware(['auth'])->group(function(){
+Route::middleware(['auth:api','web'])->group(function(){
 
     Route::get('/', 'App\Http\Controllers\HomeController@index')->name('home');
+
+    Route::get('/show', 'App\Http\Controllers\UserController@show')->name('showallusers');
+    Route::get('/fetchUser', 'App\Http\Controllers\UserController@fetchUser')->name('fetchUser');
+
     Route::post('/logout', 'App\Http\Controllers\AuthController@logout')->name('logout');
 
     Route::get('/users/all', 'App\Http\Controllers\UserController@index')->name('allusers');
 
+
+
 });
+Route::get('/verify','App\Http\Controllers\AuthController@verifyUser')->name('verify.user');
+
+
+
+
+
+
+

@@ -15,10 +15,40 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = DB::table('users')->get();
-        //dd($users);
-        return view('admin.all', ['users' => $users]);
+
     }
+
+
+
+
+
+    public function show(){
+        return view('admin.all');
+    }
+
+     /*
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public $user_id;
+    public function fetchUser()
+    {
+        $users = DB::table('users')->get();
+        return response()->json([
+            'users'=>$users,
+        ]);
+
+
+    }
+
+
+
+
+
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -41,16 +71,6 @@ class UserController extends Controller
         //
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-
-    }
 
     /**
      * Show the form for editing the specified resource.

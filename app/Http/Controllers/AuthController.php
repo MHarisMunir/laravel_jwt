@@ -6,8 +6,16 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
+use App\Mail\WelcomeMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Foundation\Events\Dispatchable;
+use App\Jobs\MailJob;
+
 use Validator;
 
 class AuthController extends Controller
@@ -16,51 +24,9 @@ class AuthController extends Controller
         //$this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
 
-    // public function register(Request $request)
-    // {
-    //     return User::create([
-    //         'name' => $request->input('name'),
-    //         'email' => $request->input('email'),
-    //         'password' => Hash::make($request->input('password'))
-    //     ]);
-    // }
-
-    // public function login(Request $request)
-    // {
-    //     if (!Auth::attempt($request->only('email', 'password'))) {
-    //         return response([
-    //             'message' => 'Invalid credentials!'
-    //         ], Response::HTTP_UNAUTHORIZED);
-    //     }
-
-    //     $user = Auth::user();
-
-    //     $token = $user->createToken('token')->plainTextToken;
-
-    //     $cookie = cookie('jwt', $token, 60 * 24); // 1 day
-
-    //     return response([
-    //         'message' => $token
-    //     ])->withCookie($cookie);
-    // }
-
-    // public function user()
-    // {
-    //     return Auth::user();
-    // }
-
-    // public function logout()
-    // {
-    //     $cookie = Cookie::forget('jwt');
-
-    //     return response([
-    //         'message' => 'Success'
-    //     ])->withCookie($cookie);
-    // }
-    ////////////////////////////////////////////////////////////////////////////////
 
 
-    /**
+    /*
      * Get a JWT via given credentials.
      *
      * @return \Illuminate\Http\JsonResponse
@@ -78,15 +44,19 @@ class AuthController extends Controller
         if (! $token = auth()->attempt($validator->validated())) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        //dd($token);
-        //return $this->createNewToken($token);
-        //return $token;
+
         $user = Auth::user();
         $user->createToken('token');
-        //return view('admin.home');
         $cookie = cookie('jwt', $token, 60 * 24); // 1 day
-        return redirect('/?token='.$token)->withCookie($cookie);
+        $user->jwt = $token;
+        $user->save();
+        if(auth()->user()->is_verified == 1){   //check if email is verified.
 
+        return Redirect::route('home')->with( ['token' => $token] )->withCookie($cookie);    //->withCookie($cookie)
+        }
+        else{
+            return redirect('/login');
+        }
     }
 
     /**
@@ -94,6 +64,8 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+
+    public $data;
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
@@ -107,15 +79,37 @@ class AuthController extends Controller
 
         $user = User::create(array_merge(
                     $validator->validated(),
-                    ['password' => bcrypt($request->password)]
+                    ['password' => bcrypt($request->password)],
                 ));
+        $user->verification_code = sha1(time());
+        $user->save();
 
-        // return response()->json([
-        //     'message' => 'User successfully registered',
-        //     'user' => $user
-        // ], 201);
+                if($user != null){
 
-        return redirect('/login');
+                    //event(new Registered($user));
+
+                    MailJob::dispatch($user);
+
+                    return redirect('/login')->with(session()->flash('alert-success', 'Your account has been created. Please check email for verification link.'));
+
+
+                }
+
+
+
+                return redirect()->route('login')->with(session()->flash('alert-danger', 'Invalid verification code!'));
+    }
+
+    public function verifyUser(Request $request){
+        $verification_code = \Illuminate\Support\Facades\Request::get('code');
+        $user = User::where(['verification_code' => $verification_code])->first();
+        if($user != null){
+            $user->is_verified = 1;
+            $user->save();
+            return redirect()->route('login')->with(session()->flash('alert-success', 'Your account is verified. Please login!'));
+        }
+
+        return redirect()->route('login')->with(session()->flash('alert-danger', 'Invalid verification code!'));
     }
 
 

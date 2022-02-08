@@ -8,15 +8,20 @@ use App\Models\User;
 
 class HomeController extends Controller
 {
-    /**
+    /*
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.home');    //layouts.app
+        return view('admin.dashboard');    //layouts.app
     }
+
+
+
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -39,16 +44,7 @@ class HomeController extends Controller
         //
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show()  //$id
-    {
 
-    }
 
     /**
      * Show the form for editing the specified resource.
